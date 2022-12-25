@@ -353,6 +353,9 @@ func (a *Agent) startInputs(
 
 		acc := NewAccumulator(input, dst)
 		acc.SetPrecision(getPrecision(precision, interval))
+		if input.Config.HighPriorityIO {
+			acc = acc.ToHighPriority()
+		}
 
 		if err := input.Start(acc); err != nil {
 			// If the model tells us to remove the plugin we do so without error

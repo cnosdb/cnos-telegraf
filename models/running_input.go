@@ -85,6 +85,7 @@ type InputConfig struct {
 	CollectionOffset     time.Duration
 	Precision            time.Duration
 	StartupErrorBehavior string
+	HighPriorityIO   bool
 
 	NameOverride            string
 	MeasurementPrefix       string
