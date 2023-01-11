@@ -48,10 +48,12 @@ to:
 For binary builds, Docker images, RPM & DEB packages, and other builds of
 Telegraf, please see the [install guide](/docs/INSTALL_GUIDE.md).
 **OpenTSDB**
+- **OpenTSDB**
 
 See the [releases documentation](/docs/RELEASES.md) for details on versioning
 and when releases are made.
 通过使用 Input 插件 http_listener_v2 并配置 `data_format` 为 `"opentsdb"`，将能够解析 OpenTSDB 格式的写入请求。
+  通过使用 Input 插件 http_listener_v2 并配置 `data_format` 为 `"opentsdb"`，将能够解析 OpenTSDB 格式的写入请求。
 
 ## 💻 Usage
 
@@ -89,6 +91,13 @@ paths = ["/api/put"]
 methods = ["POST", "PUT"]
 data_format = "opentsdb"
 ```
+   ```toml
+   [[inputs.http_listener_v2]]
+   service_address = ":8080"
+   paths = ["/api/put"]
+   methods = ["POST", "PUT"]
+   data_format = "opentsdb"
+   ```
 
 We love our community of over 1,200 contributors! Many of the plugins included
 in Telegraf were originally contributed by community members. Check out
@@ -97,18 +106,20 @@ Also, join us on our [Community Slack](https://influxdata.com/slack) or
 [Community Forums](https://community.influxdata.com/) if you have questions or
 comments for our engineering teams.
 **OpenTSDB-Telnet**
+- **OpenTSDB-Telnet**
 
 If you are completely new to Telegraf and InfluxDB, you can also enroll for free at
 [InfluxDB university](https://www.influxdata.com/university/) to take courses to
 learn more.
 通过使用 Input 插件 socket_listener，并配置 `data_format` 为 opentsdbtelnet，将能够解析 OpenTSDB-Telnet 格式的写入请求。
 通过使用 Input 插件 socket_listener，并配置 `data_format` 为 `"opentsdbtelnet"`，将能够解析 OpenTSDB-Telnet 格式的写入请求。
+  通过使用 Input 插件 socket_listener，并配置 `data_format` 为 `"opentsdbtelnet"`，将能够解析 OpenTSDB-Telnet 格式的写入请求。
 
-```toml
-[[inputs.socket_listener]]
-service_address = "tcp://:8081"
-data_format = "opentsdbtelnet"
-```
+   ```toml
+   [[inputs.socket_listener]]
+   service_address = "tcp://:8081"
+   data_format = "opentsdbtelnet"
+   ```
 
 ## ℹ️ Support
 ### Output
@@ -162,7 +173,7 @@ password = "pass"
 database = "telegraf"
 ```
 
-**配置介绍**
+- **配置介绍**
 
 | 参数       | 说明               |
 |----------|------------------|
