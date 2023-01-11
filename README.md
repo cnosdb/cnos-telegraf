@@ -2,10 +2,14 @@
 
 [![GoDoc](https://img.shields.io/badge/doc-reference-00ADD8.svg?logo=go)](https://godoc.org/github.com/influxdata/telegraf)  [![Docker pulls](https://img.shields.io/docker/pulls/library/telegraf.svg)](https://hub.docker.com/_/telegraf/) [![Go Report Card](https://goreportcard.com/badge/github.com/influxdata/telegraf)](https://goreportcard.com/report/github.com/influxdata/telegraf) [![Circle CI](https://circleci.com/gh/influxdata/telegraf.svg?style=svg)](https://circleci.com/gh/influxdata/telegraf)
 # Telegraf
+# Cnos-Telegraf
 
 Telegraf is an agent for collecting, processing, aggregating, and writing
 metrics, logs, and other arbitrary data.
 ## 介绍 Telegraf
+CnosDB-Telegraf 基于 Telegraf 进行开发，增加了一些功能与插件。
+
+## 原版 Telegraf 文档
 
 * Offers a comprehensive suite of over 300 plugins, covering a wide range of
   functionalities including system monitoring, cloud services, and message
@@ -23,6 +27,7 @@ metrics, logs, and other arbitrary data.
 Users can choose plugins from a wide range of topics, including but not limited
 to:
 ## 介绍改动
+## Cnos-Telegraf 的改动说明
 
 * Devices: [OPC UA][], [Modbus][]
 * Logs: [File][], [Tail][], [Directory Monitor][]
@@ -35,6 +40,7 @@ to:
 * Windows: [Event Log][], [Management Instrumentation][],
   [Performance Counters][]
 ### Parser
+### Parser Plugin
 
 ## 🔨 Installation
 增加 Parser 插件 OpenTSDB 和 OpenTSDB-Telnet，用于采集 OpenTSDB 的写入请求。
@@ -96,6 +102,7 @@ If you are completely new to Telegraf and InfluxDB, you can also enroll for free
 [InfluxDB university](https://www.influxdata.com/university/) to take courses to
 learn more.
 通过使用 Input 插件 socket_listener，并配置 `data_format` 为 opentsdbtelnet，将能够解析 OpenTSDB-Telnet 格式的写入请求。
+通过使用 Input 插件 socket_listener，并配置 `data_format` 为 `"opentsdbtelnet"`，将能够解析 OpenTSDB-Telnet 格式的写入请求。
 
 ```toml
 [[inputs.socket_listener]]
@@ -105,9 +112,11 @@ data_format = "opentsdbtelnet"
 
 ## ℹ️ Support
 ### Output
+### Output Plugin
 
 [![Slack](https://img.shields.io/badge/slack-join_chat-blue.svg?logo=slack)](https://www.influxdata.com/slack) [![Forums](https://img.shields.io/badge/discourse-join_forums-blue.svg?logo=discourse)](https://community.influxdata.com/)
 增加 Output 插件 CnosDBG，用于将指标输出到 CnosDB。
+增加 Output 插件 CnosDB，用于将指标输出到 CnosDB。
 
 Please use the [Community Slack](https://influxdata.com/slack) or
 [Community Forums](https://community.influxdata.com/) if you have questions or
@@ -162,7 +171,7 @@ database = "telegraf"
 | password | 密码               |
 | database | CnosDB 数据库       |
 
-### Input
+### Input Plugin
 
 增加配置参数 high_priority_io，用于开启端到端模式。
 
@@ -178,3 +187,57 @@ high_priority_io = true
 ```
 
 以上配置与在 [Output](#output) 章节中的配置相比，增加了 `high_priority_io = true` 配置项。
+
+## 构建
+
+1. [安装 Go](https://golang.org/doc/install) >=1.18 (推荐 1.18.0 版本)
+2. 从 Github 克隆仓库:
+
+   ```shell
+   git clone https://github.com/cnosdb/cnos-telegraf.git
+   ```
+
+3. 在仓库目录下执行 `make build`
+
+   ```shell
+   cd cnos-telegraf
+   make build
+   ```
+
+## 启动
+
+执行以下指令，查看用例:
+
+```shell
+telegraf --help
+```
+
+### 生成一份标准的 telegraf 配置文件
+
+```shell
+telegraf config > telegraf.conf
+```
+
+### 生成一份 telegraf 配置文件，仅包含 cpu 指标采集 & influxdb 输出两个插件
+
+```shell
+telegraf config --section-filter agent:inputs:outputs --input-filter cpu --output-filter influxdb
+```
+
+### 运行 telegraf 但是将采集指标输出到标准输出
+
+```shell
+telegraf --config telegraf.conf --test
+```
+
+### 运行 telegraf 并通过配置文件来管理加载的插件
+
+```shell
+telegraf --config telegraf.conf
+```
+
+### 运行 telegraf，仅加载 cpu & memory 指标采集，和 influxdb 输出插件
+
+```shell
+telegraf --config telegraf.conf --input-filter cpu:mem --output-filter influxdb
+```
