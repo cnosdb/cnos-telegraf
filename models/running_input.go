@@ -90,7 +90,7 @@ type InputConfig struct {
 	StartupErrorBehavior string
 	LogLevel             string
 
-	HighPriorityIO       bool
+	HighPriorityIO bool
 
 	NameOverride            string
 	MeasurementPrefix       string

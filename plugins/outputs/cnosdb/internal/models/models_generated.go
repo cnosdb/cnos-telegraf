@@ -3,8 +3,8 @@
 package models
 
 import (
-	"strconv"
 	flatbuffers "github.com/google/flatbuffers/go"
+	"strconv"
 )
 
 type FieldType int32
@@ -116,6 +116,7 @@ func PingBodyStartPayloadVector(builder *flatbuffers.Builder, numElems int) flat
 func PingBodyEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+
 type Tag struct {
 	_tab flatbuffers.Table
 }
@@ -229,6 +230,7 @@ func TagStartValueVector(builder *flatbuffers.Builder, numElems int) flatbuffers
 func TagEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+
 type Field struct {
 	_tab flatbuffers.Table
 }
@@ -357,6 +359,7 @@ func FieldStartValueVector(builder *flatbuffers.Builder, numElems int) flatbuffe
 func FieldEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+
 type Point struct {
 	_tab flatbuffers.Table
 }
@@ -537,6 +540,7 @@ func PointAddTimestamp(builder *flatbuffers.Builder, timestamp int64) {
 func PointEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+
 type Points struct {
 	_tab flatbuffers.Table
 }
