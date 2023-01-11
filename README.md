@@ -1,9 +1,11 @@
 # ![tiger](assets/TelegrafTigerSmall.png "tiger") Telegraf
 
 [![GoDoc](https://img.shields.io/badge/doc-reference-00ADD8.svg?logo=go)](https://godoc.org/github.com/influxdata/telegraf)  [![Docker pulls](https://img.shields.io/docker/pulls/library/telegraf.svg)](https://hub.docker.com/_/telegraf/) [![Go Report Card](https://goreportcard.com/badge/github.com/influxdata/telegraf)](https://goreportcard.com/report/github.com/influxdata/telegraf) [![Circle CI](https://circleci.com/gh/influxdata/telegraf.svg?style=svg)](https://circleci.com/gh/influxdata/telegraf)
+# Telegraf
 
 Telegraf is an agent for collecting, processing, aggregating, and writing
 metrics, logs, and other arbitrary data.
+## 介绍 Telegraf
 
 * Offers a comprehensive suite of over 300 plugins, covering a wide range of
   functionalities including system monitoring, cloud services, and message
@@ -16,9 +18,11 @@ metrics, logs, and other arbitrary data.
   setup experience
 * Developed with contributions from a diverse community of over 1,200
   contributors
+[README.md](./README.telegraf.md)
 
 Users can choose plugins from a wide range of topics, including but not limited
 to:
+## 介绍改动
 
 * Devices: [OPC UA][], [Modbus][]
 * Logs: [File][], [Tail][], [Directory Monitor][]
@@ -30,14 +34,18 @@ to:
 * Universal: [Exec][], [HTTP][], [HTTP Listener][], [SNMP][], [SQL][]
 * Windows: [Event Log][], [Management Instrumentation][],
   [Performance Counters][]
+### Parser
 
 ## 🔨 Installation
+增加 Parser 插件 OpenTSDB 和 OpenTSDB-Telnet，用于采集 OpenTSDB 的写入请求。
 
 For binary builds, Docker images, RPM & DEB packages, and other builds of
 Telegraf, please see the [install guide](/docs/INSTALL_GUIDE.md).
+**OpenTSDB**
 
 See the [releases documentation](/docs/RELEASES.md) for details on versioning
 and when releases are made.
+通过使用 Input 插件 http_listener_v2 并配置 `data_format` 为 `"opentsdb"`，将能够解析 OpenTSDB 格式的写入请求。
 
 ## 💻 Usage
 
@@ -68,6 +76,13 @@ Here are some commonly used documents:
 ## ❤️ Contribute
 
 [![Contribute](https://img.shields.io/badge/contribute-to_telegraf-blue.svg?logo=influxdb)](https://github.com/influxdata/telegraf/blob/master/CONTRIBUTING.md)
+```toml
+[[inputs.http_listener_v2]]
+service_address = ":8080"
+paths = ["/api/put"]
+methods = ["POST", "PUT"]
+data_format = "opentsdb"
+```
 
 We love our community of over 1,200 contributors! Many of the plugins included
 in Telegraf were originally contributed by community members. Check out
@@ -75,14 +90,24 @@ our [contributing guide](CONTRIBUTING.md) if you are interested in helping out.
 Also, join us on our [Community Slack](https://influxdata.com/slack) or
 [Community Forums](https://community.influxdata.com/) if you have questions or
 comments for our engineering teams.
+**OpenTSDB-Telnet**
 
 If you are completely new to Telegraf and InfluxDB, you can also enroll for free at
 [InfluxDB university](https://www.influxdata.com/university/) to take courses to
 learn more.
+通过使用 Input 插件 socket_listener，并配置 `data_format` 为 opentsdbtelnet，将能够解析 OpenTSDB-Telnet 格式的写入请求。
+
+```toml
+[[inputs.socket_listener]]
+service_address = "tcp://:8081"
+data_format = "opentsdbtelnet"
+```
 
 ## ℹ️ Support
+### Output
 
 [![Slack](https://img.shields.io/badge/slack-join_chat-blue.svg?logo=slack)](https://www.influxdata.com/slack) [![Forums](https://img.shields.io/badge/discourse-join_forums-blue.svg?logo=discourse)](https://community.influxdata.com/)
+增加 Output 插件 CnosDBG，用于将指标输出到 CnosDB。
 
 Please use the [Community Slack](https://influxdata.com/slack) or
 [Community Forums](https://community.influxdata.com/) if you have questions or
@@ -120,3 +145,36 @@ and feature requests only.
 [Event Log]: https://github.com/influxdata/telegraf/tree/master/plugins/inputs/win_eventlog
 [Management Instrumentation]: https://github.com/influxdata/telegraf/tree/master/plugins/inputs/win_wmi
 [Performance Counters]: https://github.com/influxdata/telegraf/tree/master/plugins/inputs/win_perf_counters
+```toml
+[[outputs.cnosdb]]
+url = "localhost:31006"
+user = "user"
+password = "pass"
+database = "telegraf"
+```
+
+**配置介绍**
+
+| 参数       | 说明               |
+|----------|------------------|
+| url      | CnosDB GRpc 服务地址 |
+| user     | 用户名              |
+| password | 密码               |
+| database | CnosDB 数据库       |
+
+### Input
+
+增加配置参数 high_priority_io，用于开启端到端模式。
+
+当设置为 true 时，写入的数据将立即发送到 Output 插件，并根据 Output 插件的返回参数来决定返回值。
+
+```toml
+[[inputs.http_listener_v2]]
+service_address = ":8080"
+paths = ["/api/put"]
+methods = ["POST", "PUT"]
+data_format = "opentsdb"
+high_priority_io = true
+```
+
+以上配置与在 [Output](#output) 章节中的配置相比，增加了 `high_priority_io = true` 配置项。
