@@ -1,15 +1,19 @@
 # ![tiger](assets/TelegrafTigerSmall.png "tiger") Telegraf
+# Cnos-Telegraf
 
 [![GoDoc](https://img.shields.io/badge/doc-reference-00ADD8.svg?logo=go)](https://godoc.org/github.com/influxdata/telegraf)  [![Docker pulls](https://img.shields.io/docker/pulls/library/telegraf.svg)](https://hub.docker.com/_/telegraf/) [![Go Report Card](https://goreportcard.com/badge/github.com/influxdata/telegraf)](https://goreportcard.com/report/github.com/influxdata/telegraf) [![Circle CI](https://circleci.com/gh/influxdata/telegraf.svg?style=svg)](https://circleci.com/gh/influxdata/telegraf)
 # Telegraf
 # Cnos-Telegraf
+CnosDB-Telegraf 基于 Telegraf 进行开发，增加了一些功能与插件。
 
 Telegraf is an agent for collecting, processing, aggregating, and writing
 metrics, logs, and other arbitrary data.
 ## 介绍 Telegraf
 CnosDB-Telegraf 基于 Telegraf 进行开发，增加了一些功能与插件。
+## 原版 Telegraf 文档
 
 ## 原版 Telegraf 文档
+[README.md](./README.telegraf.md)
 
 * Offers a comprehensive suite of over 300 plugins, covering a wide range of
   functionalities including system monitoring, cloud services, and message
@@ -23,11 +27,13 @@ CnosDB-Telegraf 基于 Telegraf 进行开发，增加了一些功能与插件。
 * Developed with contributions from a diverse community of over 1,200
   contributors
 [README.md](./README.telegraf.md)
+## Cnos-Telegraf 的改动说明
 
 Users can choose plugins from a wide range of topics, including but not limited
 to:
 ## 介绍改动
 ## Cnos-Telegraf 的改动说明
+### Parser Plugin
 
 * Devices: [OPC UA][], [Modbus][]
 * Logs: [File][], [Tail][], [Directory Monitor][]
@@ -41,14 +47,17 @@ to:
   [Performance Counters][]
 ### Parser
 ### Parser Plugin
+增加 Parser 插件 OpenTSDB 和 OpenTSDB-Telnet，用于采集 OpenTSDB 的写入请求。
 
 ## 🔨 Installation
 增加 Parser 插件 OpenTSDB 和 OpenTSDB-Telnet，用于采集 OpenTSDB 的写入请求。
+- **OpenTSDB**
 
 For binary builds, Docker images, RPM & DEB packages, and other builds of
 Telegraf, please see the [install guide](/docs/INSTALL_GUIDE.md).
 **OpenTSDB**
 - **OpenTSDB**
+  通过使用 Input 插件 http_listener_v2 并配置 `data_format` 为 `"opentsdb"`，将能够解析 OpenTSDB 格式的写入请求。
 
 See the [releases documentation](/docs/RELEASES.md) for details on versioning
 and when releases are made.
@@ -90,6 +99,19 @@ service_address = ":8080"
 paths = ["/api/put"]
 methods = ["POST", "PUT"]
 data_format = "opentsdb"
+```shell
+# influxdata-archive_compat.key GPG fingerprint:
+#     9D53 9D90 D332 8DC7 D6C8 D3B9 D8FF 8E1F 7DF8 B07E
+wget -q https://repos.influxdata.com/influxdata-archive_compat.key
+echo '393e8779c89ac8d958f81f942f9ad7fb82a25e133faddaf92e15b16e6ac9ce4c influxdata-archive_compat.key' | sha256sum -c && cat influxdata-archive_compat.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg > /dev/null
+echo 'deb [signed-by=/etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg] https://repos.influxdata.com/debian stable main' | sudo tee /etc/apt/sources.list.d/influxdata.list
+sudo apt-get update && sudo apt-get install telegraf
+```toml
+[[inputs.http_listener_v2]]
+service_address = ":8080"
+paths = ["/api/put"]
+methods = ["POST", "PUT"]
+data_format = "opentsdb"
 ```
    ```toml
    [[inputs.http_listener_v2]]
@@ -97,6 +119,50 @@ data_format = "opentsdb"
    paths = ["/api/put"]
    methods = ["POST", "PUT"]
    data_format = "opentsdb"
+   ```toml
+   [[inputs.http_listener_v2]]
+   service_address = ":8080"
+   paths = ["/api/put"]
+   methods = ["POST", "PUT"]
+   data_format = "opentsdb"
+   ```
+
+- **OpenTSDB-Telnet**
+
+```shell
+# influxdata-archive_compat.key GPG fingerprint:
+#     9D53 9D90 D332 8DC7 D6C8 D3B9 D8FF 8E1F 7DF8 B07E
+cat <<EOF | sudo tee /etc/yum.repos.d/influxdata.repo
+[influxdata]
+name = InfluxData Repository - Stable
+baseurl = https://repos.influxdata.com/stable/\$basearch/main
+enabled = 1
+gpgcheck = 1
+gpgkey = https://repos.influxdata.com/influxdata-archive_compat.key
+EOF
+sudo yum install telegraf
+通过使用 Input 插件 socket_listener，并配置 `data_format` 为 opentsdbtelnet，将能够解析 OpenTSDB-Telnet 格式的写入请求。
+通过使用 Input 插件 socket_listener，并配置 `data_format` 为 `"opentsdbtelnet"`，将能够解析 OpenTSDB-Telnet 格式的写入请求。
+  通过使用 Input 插件 socket_listener，并配置 `data_format` 为 `"opentsdbtelnet"`，将能够解析 OpenTSDB-Telnet 格式的写入请求。
+
+   ```toml
+   [[inputs.socket_listener]]
+   service_address = "tcp://:8081"
+   data_format = "opentsdbtelnet"
+   ```
+
+### Output Plugin
+
+Telegraf requires Go version 1.21 or newer and the Makefile requires GNU make.
+
+On Windows, the makefile requires the use of a bash terminal to support all makefile targets.
+An easy option to get bash for windows is using the version that comes with [git for windows](https://gitforwindows.org/).
+
+1. [Install Go](https://golang.org/doc/install)
+2. Clone the Telegraf repository:
+
+   ```shell
+   git clone https://github.com/influxdata/telegraf.git
    ```
 
 We love our community of over 1,200 contributors! Many of the plugins included
@@ -173,6 +239,66 @@ password = "pass"
 database = "telegraf"
 ```
 
+- **配置介绍**
+
+| 参数       | 说明               |
+|----------|------------------|
+| url      | CnosDB GRpc 服务地址 |
+| user     | 用户名              |
+| password | 密码               |
+| database | CnosDB 数据库       |
+
+### Input Plugin
+
+增加配置参数 high_priority_io，用于开启端到端模式。
+
+当设置为 true 时，写入的数据将立即发送到 Output 插件，并根据 Output 插件的返回参数来决定返回值。
+
+```toml
+[[inputs.http_listener_v2]]
+service_address = ":8080"
+paths = ["/api/put"]
+methods = ["POST", "PUT"]
+data_format = "opentsdb"
+high_priority_io = true
+```
+
+以上配置与在 [Output](#output) 章节中的配置相比，增加了 `high_priority_io = true` 配置项。
+
+## 构建
+
+1. [安装 Go](https://golang.org/doc/install) >=1.18 (推荐 1.18.0 版本)
+2. 从 Github 克隆仓库:
+
+   ```shell
+   git clone https://github.com/cnosdb/cnos-telegraf.git
+   ```
+
+3. 在仓库目录下执行 `make build`
+
+   ```shell
+   cd cnos-telegraf
+   make build
+   ```
+
+## 启动
+
+执行以下指令，查看用例:
+
+```shell
+telegraf --help
+增加 Output 插件 CnosDBG，用于将指标输出到 CnosDB。
+增加 Output 插件 CnosDB，用于将指标输出到 CnosDB。
+
+```toml
+[[outputs.cnosdb]]
+url = "localhost:31006"
+user = "user"
+password = "pass"
+database = "telegraf"
+```
+
+### 生成一份标准的 telegraf 配置文件
 - **配置介绍**
 
 | 参数       | 说明               |
