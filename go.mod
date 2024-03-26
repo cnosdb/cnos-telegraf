@@ -224,6 +224,8 @@ require (
 	modernc.org/sqlite v1.29.5
 )
 
+require github.com/apache/arrow/go/v15 v15.0.2
+
 require (
 	cloud.google.com/go v0.112.2 // indirect
 	cloud.google.com/go/auth v0.3.0 // indirect
@@ -262,7 +264,6 @@ require (
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
 	github.com/apache/arrow/go/v14 v14.0.2 // indirect
-	github.com/apache/arrow/go/v15 v15.0.2 // indirect
 	github.com/aristanetworks/glog v0.0.0-20191112221043-67e8567f59f3 // indirect
 	github.com/armon/go-metrics v0.4.1 // indirect
 	github.com/awnumar/memcall v0.2.0 // indirect
@@ -338,7 +339,7 @@ require (
 	github.com/golang-sql/sqlexp v0.1.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/google/flatbuffers v24.3.7+incompatible // indirect
+	github.com/google/flatbuffers v24.3.7+incompatible
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
