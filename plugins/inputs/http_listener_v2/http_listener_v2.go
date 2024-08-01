@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	_ "embed"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -245,6 +246,35 @@ func (h *HTTPListenerV2) serveWrite(res http.ResponseWriter, req *http.Request) 
 		})
 	}
 
+	switch acc := h.acc.(type) {
+	case telegraf.HighPriorityAccumulator:
+		h.writeToHighPriorityAccumulator(req, res, acc, metrics)
+	default:
+		for _, m := range metrics {
+			for headerName, measurementName := range h.HTTPHeaderTags {
+				headerValues := req.Header.Get(headerName)
+				if len(headerValues) > 0 {
+					m.AddTag(measurementName, headerValues)
+				}
+			}
+
+			if h.PathTag {
+				m.AddTag(pathTag, req.URL.Path)
+			}
+
+			h.acc.AddMetric(m)
+		}
+	}
+
+	res.WriteHeader(h.SuccessCode)
+}
+
+func (h *HTTPListenerV2) writeToHighPriorityAccumulator(
+	req *http.Request,
+	res http.ResponseWriter,
+	acc telegraf.HighPriorityAccumulator,
+	metrics []telegraf.Metric,
+) {
 	for _, m := range metrics {
 		for headerName, measurementName := range h.HTTPHeaderTags {
 			headerValues := req.Header.Get(headerName)
@@ -257,10 +287,19 @@ func (h *HTTPListenerV2) serveWrite(res http.ResponseWriter, req *http.Request) 
 			m.AddTag(pathTag, req.URL.Path)
 		}
 
-		h.acc.AddMetric(m)
-	}
+		if err := acc.AddMetricHighPriority(m); err != nil {
+			acc.AddError(fmt.Errorf("writing data to output failed: %w", err))
+			h.Log.Debugf("got error from high-priority-IO")
 
-	res.WriteHeader(h.SuccessCode)
+			res.WriteHeader(http.StatusInternalServerError)
+			_, err = res.Write([]byte(fmt.Sprintf(`{"error":"%v"}`, err)))
+			if err != nil {
+				acc.AddError(fmt.Errorf("send htp response failed: %w", err))
+				h.Log.Tracef("send http response failed: %v", err)
+			}
+			return
+		}
+	}
 }
 
 func (h *HTTPListenerV2) collectBody(res http.ResponseWriter, req *http.Request) ([]byte, bool) {
@@ -369,6 +408,10 @@ func (h *HTTPListenerV2) authenticateIfSet(handler http.HandlerFunc, res http.Re
 	} else {
 		handler(res, req)
 	}
+}
+
+func (h *HTTPListenerV2) MarkHighPriority() {
+	// Do nothing
 }
 
 func init() {

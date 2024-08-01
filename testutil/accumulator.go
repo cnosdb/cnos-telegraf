@@ -176,6 +176,11 @@ func (a *Accumulator) AddMetrics(metrics []telegraf.Metric) {
 	}
 }
 
+func (a *Accumulator) AddMetricHighPriority(m telegraf.Metric) error {
+	a.addMeasurement(m.Name(), m.Tags(), m.Fields(), m.Type(), m.Time())
+	return nil
+}
+
 func (a *Accumulator) AddSummary(
 	measurement string,
 	fields map[string]interface{},
@@ -219,6 +224,10 @@ func (a *Accumulator) WithTracking(maxTracked int) telegraf.TrackingAccumulator 
 	defer a.trackingMutex.Unlock()
 	a.deliverChan = make(chan telegraf.DeliveryInfo, maxTracked)
 	a.delivered = make([]telegraf.DeliveryInfo, 0, maxTracked)
+	return a
+}
+
+func (a *Accumulator) ToHighPriority() telegraf.HighPriorityAccumulator {
 	return a
 }
 
