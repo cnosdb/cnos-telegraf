@@ -52,6 +52,9 @@ type Accumulator interface {
 	// Upgrade to a TrackingAccumulator with space for maxTracked
 	// metrics/batches.
 	WithTracking(maxTracked int) TrackingAccumulator
+
+	// Upgrade to a HighPriorityAccumulator
+	ToHighPriority() HighPriorityAccumulator
 }
 
 // TrackingID uniquely identifies a tracked metric group
@@ -90,4 +93,10 @@ type TrackingAccumulator interface {
 
 	// Delivered returns a channel that will contain the tracking results.
 	Delivered() <-chan DeliveryInfo
+}
+
+type HighPriorityAccumulator interface {
+	Accumulator
+
+	AddMetricHighPriority(Metric) error
 }

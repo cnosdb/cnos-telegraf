@@ -242,6 +242,15 @@ func (r *RunningOutput) AddMetric(metric telegraf.Metric) {
 		metric.AddSuffix(r.Config.NameSuffix)
 	}
 
+	if mt, ok := metric.(telegraf.HighPriorityMetric); ok {
+		r.log.Tracef("calling output plugin %s directly - before\n", r.Config.Name)
+		err := r.Output.Write([]telegraf.Metric{mt})
+		r.log.Tracef("calling output plugin %s directly - after\n", r.Config.Name)
+		mt.ErrorCh() <- err
+		r.log.Tracef("calling output plugin %s directly - responded\n", r.Config.Name)
+		return
+	}
+
 	dropped := r.buffer.Add(metric)
 	atomic.AddInt64(&r.droppedMetrics, int64(dropped))
 
