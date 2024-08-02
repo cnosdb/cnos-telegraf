@@ -1,9 +1,9 @@
 package v4
 
-type ColumnType uint32
+type ColumnTypeCode uint32
 
 const (
-	ColumnTypeUnknown ColumnType = iota
+	ColumnTypeUnknown ColumnTypeCode = iota
 	ColumnTypeTag
 	ColumnTypeTime
 	ColumnTypeFieldUnknown
@@ -15,10 +15,10 @@ const (
 	ColumnTypeFieldGeometry
 )
 
-type TimeUnit uint32
+type TimeUnitCode uint32
 
 const (
-	TimeUnitUnknown TimeUnit = iota
+	TimeUnitUnknown TimeUnitCode = iota
 	TimeUnitSecond
 	TimeUnitMillisecond
 	TimeUnitMicrosecond
@@ -26,25 +26,26 @@ const (
 )
 
 type TskvTableSchema struct {
-	Tenant        string            `json:"tenant"`
-	Db            string            `json:"db"`
-	Name          string            `json:"name"`
-	SchemaVersion uint64            `json:"schema_version"`
-	NextColumnID  uint32            `json:"next_column_id"`
-	Columns       []TableColumn     `json:"columns"`
-	ColumnsIndex  map[string]uint32 `json:"columns_index"`
+	// Tenant string `json:"tenant"`
+	// Db   string `json:"db"`
+	Name string `json:"name"`
+	// SchemaId uint64 `json:"schema_id"` // v2.4.0 field
+	// SchemaVersion uint64 `json:"schema_version"` // v2.4.1 field
+	// NextColumnID uint32 `json:"next_column_id"`
+	Columns []TableColumn `json:"columns"`
+	// ColumnsIndex  map[string]uint32 `json:"columns_index"`
 }
 
 type TableColumn struct {
 	ID         uint64      `json:"id"`
 	Name       string      `json:"name"`
 	ColumnType interface{} `json:"column_type"`
-	Encoding   interface{} `json:"encoding"`
+	// Encoding interface{} `json:"encoding"`
 }
 
 type ColumnTypeUnited struct {
-	ColumnType ColumnType
-	TimeUnit   TimeUnit
+	ColumnType ColumnTypeCode
+	TimeUnit   TimeUnitCode
 }
 
 func (c *TableColumn) GetColumnTypeUnited() ColumnTypeUnited {
@@ -55,6 +56,54 @@ func (c *TableColumn) GetColumnTypeUnited() ColumnTypeUnited {
 			return ColumnTypeUnited{
 				ColumnType: ColumnTypeTag,
 				TimeUnit:   TimeUnitUnknown,
+			}
+		} else {
+			// In cnosdb-v2.4.0, columnType is string
+			// After cnosdb-v2.4.0, columnType is string or object
+			columnTypeCode := ColumnTypeUnknown
+			timeUnitCode := TimeUnitUnknown
+			switch columnType {
+			case "TAG_STRING":
+				// "column_type": "TAG_STRING"
+				return ColumnTypeUnited{
+					ColumnType: ColumnTypeTag,
+					TimeUnit:   TimeUnitUnknown,
+				}
+			case "FIELD_STRING":
+				// "column_type": "FIELD_STRING"
+				columnTypeCode = ColumnTypeFieldString
+			case "FIELD_BIGINT":
+				// "column_type": "FIELD_BIGINT""
+				columnTypeCode = ColumnTypeFieldInteger
+			case "FIELD_BIGINT UNSIGNED":
+				// "column_type": "FIELD_BIGINT UNSIGNED""
+				columnTypeCode = ColumnTypeFieldUnsigned
+			case "FIELD_DOUBLE":
+				// "column_type": "FIELD_STRING"
+				columnTypeCode = ColumnTypeFieldFloat
+			case "FIELD_BOOLEAN":
+				// "column_type": "FIELD_BOOLEAN""
+				columnTypeCode = ColumnTypeFieldBoolean
+			case "TIME_TIMESTAMP(SECOND)":
+				// "column_type": "TIME_TIMESTAMP(SECOND)""
+				columnTypeCode = ColumnTypeTime
+				timeUnitCode = TimeUnitSecond
+			case "TIME_TIMESTAMP(MILLISECOND)":
+				// "column_type": "TIME_TIMESTAMP(MILLISECOND)""
+				columnTypeCode = ColumnTypeTime
+				timeUnitCode = TimeUnitMillisecond
+			case "TIME_TIMESTAMP(MICROSECOND)":
+				// "column_type": "TIME_TIMESTAMP(MICROSECOND)""
+				columnTypeCode = ColumnTypeTime
+				timeUnitCode = TimeUnitMicrosecond
+			case "TIME_TIMESTAMP(NANOSECOND)":
+				// "column_type": "TIME_TIMESTAMP(NANOSECOND)""
+				columnTypeCode = ColumnTypeTime
+				timeUnitCode = TimeUnitNanosecond
+			}
+			return ColumnTypeUnited{
+				ColumnType: columnTypeCode,
+				TimeUnit:   timeUnitCode,
 			}
 		}
 	case map[string]interface{}:
