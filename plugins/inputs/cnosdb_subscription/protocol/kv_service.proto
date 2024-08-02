@@ -24,9 +24,11 @@ message WritePointsResponse {
 
 // CnosDB subscription v4 message.
 message SubscriptionRequest {
-  uint32 precision = 1;
-  bytes table_schema = 2;
-  bytes record_data = 3;
+  string tenant = 1;
+  string db = 2;
+  bytes table_schema = 3;
+  bytes record_data = 4;
+  uint32 precision = 5;
 }
 
 // CnosDB subscription v4 message.
