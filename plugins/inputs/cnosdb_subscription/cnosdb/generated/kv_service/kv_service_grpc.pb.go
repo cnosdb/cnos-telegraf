@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v5.27.1
-// source: protos/protobuf/kv_service.proto
+// source: kv_service.proto
 
-package protos
+package kv_service
 
 import (
 	context "context"
@@ -19,6 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
+	TSKVService_WritePoints_FullMethodName       = "/kv_service.TSKVService/WritePoints"
 	TSKVService_WriteSubscription_FullMethodName = "/kv_service.TSKVService/WriteSubscription"
 )
 
@@ -26,6 +27,9 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TSKVServiceClient interface {
+	// CnosDB subscription v3 API.
+	WritePoints(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[WritePointsRequest, WritePointsResponse], error)
+	// CnosDB subscription v4 API.
 	WriteSubscription(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[SubscriptionRequest, SubscriptionResponse], error)
 }
 
@@ -37,9 +41,22 @@ func NewTSKVServiceClient(cc grpc.ClientConnInterface) TSKVServiceClient {
 	return &tSKVServiceClient{cc}
 }
 
+func (c *tSKVServiceClient) WritePoints(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[WritePointsRequest, WritePointsResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &TSKVService_ServiceDesc.Streams[0], TSKVService_WritePoints_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[WritePointsRequest, WritePointsResponse]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type TSKVService_WritePointsClient = grpc.BidiStreamingClient[WritePointsRequest, WritePointsResponse]
+
 func (c *tSKVServiceClient) WriteSubscription(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[SubscriptionRequest, SubscriptionResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &TSKVService_ServiceDesc.Streams[0], TSKVService_WriteSubscription_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &TSKVService_ServiceDesc.Streams[1], TSKVService_WriteSubscription_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -54,6 +71,9 @@ type TSKVService_WriteSubscriptionClient = grpc.BidiStreamingClient[Subscription
 // All implementations must embed UnimplementedTSKVServiceServer
 // for forward compatibility.
 type TSKVServiceServer interface {
+	// CnosDB subscription v3 API.
+	WritePoints(grpc.BidiStreamingServer[WritePointsRequest, WritePointsResponse]) error
+	// CnosDB subscription v4 API.
 	WriteSubscription(grpc.BidiStreamingServer[SubscriptionRequest, SubscriptionResponse]) error
 	mustEmbedUnimplementedTSKVServiceServer()
 }
@@ -65,6 +85,9 @@ type TSKVServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedTSKVServiceServer struct{}
 
+func (UnimplementedTSKVServiceServer) WritePoints(grpc.BidiStreamingServer[WritePointsRequest, WritePointsResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method WritePoints not implemented")
+}
 func (UnimplementedTSKVServiceServer) WriteSubscription(grpc.BidiStreamingServer[SubscriptionRequest, SubscriptionResponse]) error {
 	return status.Errorf(codes.Unimplemented, "method WriteSubscription not implemented")
 }
@@ -89,6 +112,13 @@ func RegisterTSKVServiceServer(s grpc.ServiceRegistrar, srv TSKVServiceServer) {
 	s.RegisterService(&TSKVService_ServiceDesc, srv)
 }
 
+func _TSKVService_WritePoints_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(TSKVServiceServer).WritePoints(&grpc.GenericServerStream[WritePointsRequest, WritePointsResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type TSKVService_WritePointsServer = grpc.BidiStreamingServer[WritePointsRequest, WritePointsResponse]
+
 func _TSKVService_WriteSubscription_Handler(srv interface{}, stream grpc.ServerStream) error {
 	return srv.(TSKVServiceServer).WriteSubscription(&grpc.GenericServerStream[SubscriptionRequest, SubscriptionResponse]{ServerStream: stream})
 }
@@ -105,11 +135,17 @@ var TSKVService_ServiceDesc = grpc.ServiceDesc{
 	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
 		{
+			StreamName:    "WritePoints",
+			Handler:       _TSKVService_WritePoints_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+		{
 			StreamName:    "WriteSubscription",
 			Handler:       _TSKVService_WriteSubscription_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},
 	},
-	Metadata: "protos/protobuf/kv_service.proto",
+	Metadata: "kv_service.proto",
 }

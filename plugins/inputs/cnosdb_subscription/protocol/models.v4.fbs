@@ -1,4 +1,4 @@
-namespace protos;
+namespace models;
 
 table PingBody {
     payload: [ubyte];

@@ -10,7 +10,8 @@ import (
 	"github.com/influxdata/telegraf"
 	"github.com/influxdata/telegraf/config"
 	"github.com/influxdata/telegraf/plugins/inputs"
-	"github.com/influxdata/telegraf/plugins/inputs/cnosdb_subscription/protos"
+	"github.com/influxdata/telegraf/plugins/inputs/cnosdb_subscription/cnosdb"
+	"github.com/influxdata/telegraf/plugins/inputs/cnosdb_subscription/cnosdb/generated/kv_service"
 	"google.golang.org/grpc"
 )
 
@@ -27,6 +28,7 @@ var sampleConfig string
 
 type CnosDbSubscription struct {
 	ServiceAddress string          `toml:"service_address"`
+	ServiceVersion string          `toml:"service_version"`
 	Timeout        config.Duration `toml:"timeout"`
 
 	Log telegraf.Logger `toml:"-"`
@@ -52,7 +54,7 @@ func (c *CnosDbSubscription) Gather(_ telegraf.Accumulator) error {
 
 func (c *CnosDbSubscription) Start(acc telegraf.Accumulator) error {
 	c.grpcServer = grpc.NewServer(grpc.MaxRecvMsgSize(10 * 1024 * 1024))
-	protos.RegisterTSKVServiceServer(c.grpcServer, NewTSKVService(acc))
+	kv_service.RegisterTSKVServiceServer(c.grpcServer, cnosdb.NewTSKVService(acc))
 
 	if c.listener == nil {
 		listener, err := net.Listen("tcp", c.ServiceAddress)
