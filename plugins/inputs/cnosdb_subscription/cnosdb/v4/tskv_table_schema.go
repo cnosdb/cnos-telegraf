@@ -1,6 +1,6 @@
-package cnosdb
+package v4
 
-type ColumnType int
+type ColumnType uint32
 
 const (
 	ColumnTypeUnknown ColumnType = iota
@@ -15,7 +15,7 @@ const (
 	ColumnTypeFieldGeometry
 )
 
-type TimeUnit int
+type TimeUnit uint32
 
 const (
 	TimeUnitUnknown TimeUnit = iota
@@ -106,7 +106,7 @@ func (c *TableColumn) GetColumnTypeUnited() ColumnTypeUnited {
 				}
 			case map[string]interface{}:
 				if geometryInfo := fieldType["Geometry"]; geometryInfo != nil {
-					// "column_type": {"Field":{"Geometry":{"sub_type":"Point","srid":10}}}
+					// "column_type": {"Field":{"Geometry":{"sub_type":"Point"}}}
 					fieldTypeCode = ColumnTypeFieldGeometry
 				}
 			}
