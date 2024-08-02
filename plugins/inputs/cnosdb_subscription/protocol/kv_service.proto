@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package kv_service;
+option go_package = ".;kv_service";
+
+// CnosDB subscription v3 message.
+message Meta {
+  string tenant = 1;
+  optional string user = 2;
+  optional string password = 3;
+}
+
+// CnosDB subscription v3 message.
+message WritePointsRequest {
+  uint64 version = 1;
+  Meta meta = 2;
+  bytes points = 3;
+}
+
+// CnosDB subscription v3 message.
+message WritePointsResponse {
+  uint64 points_number = 1;
+}
+
+// CnosDB subscription v4 message.
+message SubscriptionRequest {
+  uint32 precision = 1;
+  bytes table_schema = 2;
+  bytes record_data = 3;
+}
+
+// CnosDB subscription v4 message.
+message SubscriptionResponse {}
+
+service TSKVService {
+  // CnosDB subscription v3 API.
+  rpc WritePoints(stream WritePointsRequest) returns (stream WritePointsResponse) {};
+
+  // CnosDB subscription v4 API.
+  rpc WriteSubscription(stream SubscriptionRequest) returns (stream SubscriptionResponse){};
+}
