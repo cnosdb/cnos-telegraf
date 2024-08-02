@@ -152,6 +152,7 @@ func (s TSKVServiceServerImpl) WriteSubscription(server kv_service.TSKVService_W
 
 		var tableSchema cnosdb_v4.TskvTableSchema
 		if err := json.Unmarshal(req.TableSchema, &tableSchema); err != nil {
+			s.accumulator.AddError(fmt.Errorf("failed to parse TskvTableSchema: %w", err))
 			return server.Send(&kv_service.SubscriptionResponse{})
 		}
 
