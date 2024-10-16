@@ -4,6 +4,7 @@ package socket_listener
 
 import (
 	_ "embed"
+	"fmt"
 	"net"
 	"sync"
 	"time"
@@ -67,15 +68,30 @@ func (sl *SocketListener) Start(acc telegraf.Accumulator) error {
 				sl.Log.Debug(internal.NoMetricsCreatedMsg)
 			})
 		}
+		switch ac := acc.(type) {
+		case telegraf.HighPriorityAccumulator:
+			for _, m := range metrics {
+				switch sl.TimeSource {
+				case "", "metric":
+				case "receive_time":
+					m.SetTime(receiveTime)
+				}
 
-		for _, m := range metrics {
-			switch sl.TimeSource {
-			case "", "metric":
-			case "receive_time":
-				m.SetTime(receiveTime)
+				if err = ac.AddMetricHighPriority(m); err != nil {
+					sl.Log.Tracef("input socket_listener got error from high-priority-IO")
+					acc.AddError(fmt.Errorf("writing data to output failed: %w", err))
+				}
 			}
+		default:
+			for _, m := range metrics {
+				switch sl.TimeSource {
+				case "", "metric":
+				case "receive_time":
+					m.SetTime(receiveTime)
+				}
 
-			acc.AddMetric(m)
+				acc.AddMetric(m)
+			}
 		}
 	}
 	onError := func(err error) {
@@ -97,6 +113,10 @@ func (sl *SocketListener) Stop() {
 	if sl.socket != nil {
 		sl.socket.Close()
 	}
+}
+
+func (sl *SocketListener) MarkHighPriority() {
+	// Do nothing
 }
 
 func init() {

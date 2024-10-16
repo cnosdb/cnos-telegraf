@@ -93,6 +93,8 @@ type InputConfig struct {
 	StartupErrorBehavior string
 	LogLevel             string
 
+	HighPriorityIO bool
+
 	NameOverride            string
 	MeasurementPrefix       string
 	MeasurementSuffix       string
